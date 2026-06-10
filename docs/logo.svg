@@ -1,0 +1,44 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NovaNode logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366F1"/>
+      <stop offset="0.55" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="spark" x1="113" y1="113" x2="143" y2="143" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <rect width="256" height="256" rx="56" fill="#FFFFFF" fill-opacity="0.06"/>
+
+  <!-- hexagonal mesh -->
+  <polygon points="128,66 181.7,97 181.7,159 128,190 74.3,159 74.3,97"
+           fill="none" stroke="#FFFFFF" stroke-opacity="0.5" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- spokes -->
+  <g stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="6" stroke-linecap="round">
+    <line x1="128" y1="128" x2="128" y2="66"/>
+    <line x1="128" y1="128" x2="181.7" y2="97"/>
+    <line x1="128" y1="128" x2="181.7" y2="159"/>
+    <line x1="128" y1="128" x2="128" y2="190"/>
+    <line x1="128" y1="128" x2="74.3" y2="159"/>
+    <line x1="128" y1="128" x2="74.3" y2="97"/>
+  </g>
+
+  <!-- outer nodes -->
+  <g fill="#FFFFFF">
+    <circle cx="128" cy="66" r="9"/>
+    <circle cx="181.7" cy="97" r="9"/>
+    <circle cx="181.7" cy="159" r="9"/>
+    <circle cx="128" cy="190" r="9"/>
+    <circle cx="74.3" cy="159" r="9"/>
+    <circle cx="74.3" cy="97" r="9"/>
+  </g>
+
+  <!-- nova core -->
+  <circle cx="128" cy="128" r="18" fill="#FFFFFF"/>
+  <path d="M128 113 C130 124 132 126 143 128 C132 130 130 132 128 143 C126 132 124 130 113 128 C124 126 126 124 128 113 Z" fill="url(#spark)"/>
+</svg>

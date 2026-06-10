@@ -1,0 +1,156 @@
+// NovaNode — Prisma schema
+// Database design per PRD.md. Created by PanduAsmara.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+  VIEWER
+}
+
+enum NodeStatus {
+  ONLINE
+  OFFLINE
+  UNKNOWN
+}
+
+enum SshAuthType {
+  PASSWORD
+  KEY
+}
+
+enum InstallationKind {
+  PANEL
+  WINGS
+  UPDATE
+  REPAIR
+  SERVICE
+}
+
+enum InstallationStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  username     String   @unique
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(VIEWER)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+/// Hashed refresh tokens for session management / rotation.
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Node {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  fqdn      String
+  location  String?
+  token     String?
+  status    NodeStatus @default(UNKNOWN)
+
+  // SSH connection (used by Installer / Wings / Monitoring). Secret is encrypted at rest.
+  sshHost        String?      @map("ssh_host")
+  sshPort        Int          @default(22) @map("ssh_port")
+  sshUser        String?      @map("ssh_user")
+  sshAuthType    SshAuthType? @map("ssh_auth_type")
+  sshSecret      String?      @map("ssh_secret")
+  wingsInstalled Boolean      @default(false) @map("wings_installed")
+
+  // Origin reference when imported from a Pterodactyl panel.
+  pterodactylId Int? @unique @map("pterodactyl_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  allocations Allocation[]
+
+  @@map("nodes")
+}
+
+/// Generic key/value settings (e.g. Pterodactyl panel config). Values are JSON;
+/// sensitive fields inside are encrypted before being stored.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model Allocation {
+  id     String  @id @default(uuid()) @db.Uuid
+  nodeId String  @map("node_id") @db.Uuid
+  ip     String
+  port   Int
+  alias  String?
+
+  node Node @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@unique([nodeId, ip, port])
+  @@index([nodeId])
+  @@map("allocations")
+}
+
+model Installation {
+  id        String             @id @default(uuid()) @db.Uuid
+  targetIp  String             @map("target_ip")
+  nodeId    String?            @map("node_id") @db.Uuid
+  kind      InstallationKind   @default(SERVICE)
+  service   String
+  os        String?
+  status    InstallationStatus @default(PENDING)
+  log       String?
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  @@index([nodeId])
+  @@map("installations")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@map("audit_logs")
+}
